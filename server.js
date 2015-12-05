@@ -38,6 +38,7 @@ app.get('/', function (req, res) {
                        $('.blockHeight').text("#"+lastBlock.height.toString());
                        $('.blockHash').text(lastBlock.hash.toString());
                        $('#blockHeight').val(lastBlock.height.toString());
+                       $('#blockHash').val(lastBlock.hash.toString());
                        res.send($.html());
                      }
                  });
@@ -52,8 +53,9 @@ app.post('/', function(req, res) {
       var record = {};
       record.blockHeight = req.body.blockHeight.toString();
       record.nom = req.body.nom.toString();
-      record.prenom = req.body.nom.toString();
+      record.prenom = req.body.prenom.toString();
       record.pari= req.body.pari.toString();
+      record.blockHash = req.body.blockHash.toString();
       record.win = "pending";
 
       //saving
@@ -84,38 +86,80 @@ app.get('/results', function(req, res){
 
   /* Display results here */
   var blockHeight = req.query.id;
-  var blockHeightPlusDeux =  parseInt(req.query.id) + 2;
 
       if(req.query.id != null) {
-          // fill the accueil view and send it !
-          fs.readFile('./views/resultat.html','utf8', function (err, html) {
-               if (err) {
-                   throw err;
-               }
-               else {
-                 res.contentType('text/html');
-                 $ = cheerio.load(html);
-                 $('.blockHeight').text("#"+blockHeight.toString());
-                 $('.block2Height').text("pending (...)");
 
-                // display saved bets
-                // get bets ni our data
-                 var data = JSON.parse(fs.readFileSync('./data.json', 'utf8'));
-                for(var i = 0 ; i < data.records.length; i++) {
-                    if(data.records[i].blockHeight === blockHeight){
-                       if(data.records[i].win === "pending"){
+              var blockHeightPlusDeux =  parseInt(req.query.id) + 2;
+              var url = getHashByHeightURL + blockHeightPlusDeux;
+              // get the block + 2 hash if avaiable
+              var req = request(url, function(error, response, html){ // ! async !
+                    if(!error){
+                      var hashPlusDeux = 0;
+                      var resultBin;
+                        if(html != "Bad Request") {
+                            var jsonResult = JSON.parse(html);
+                            hashPlusDeux = jsonResult.blockHash;
+                            var resultHex = hashPlusDeux.slice(-2);
+                            resultBin = parseInt(resultHex,16).toString(2);
+                          }
+                          else{
+                            console.log("error BAD request#33");
+                          }
 
-                          // need to update the value if known
-                          $('.bets' ).append('<li>'+ data.records[i].win +' <-> '+data.records[i].nom + ' ' + data.records[i].prenom + '</li>');
-                       }
-                       else{
-                         $('bets').append('<li>'+ data.records[i].win +' <-> '+data.records[i].nom + ' ' + data.records[i].prenom + '</li>');
-                       }
+                            fs.readFile('./views/resultat.html','utf8', function (err, html) {
+                                 if (err) {
+                                     throw err;
+                                 }
+                                 else {
+                                   res.contentType('text/html');
+                                   $ = cheerio.load(html);
+                                   $('.blockHeight').text("#"+blockHeight.toString());
+                                   $('.blockHash').text(blockHeight.toString());
+
+                                   if(hashPlusDeux === 0 ) {
+                                      $('.block2Height').text("pending (...)");
+                                      $('.block2Hash').text("waiting..");
+                                  }
+                                  else {
+                                    $('.block2Height').text("#"+blockHeightPlusDeux.toString());
+                                    $('.block2Hash').text(hashPlusDeux + "\n >> " + resultBin.slice(-5));
+                                  }
+
+                                  // display saved bets
+                                  // get bets ni our data
+                                  var data = JSON.parse(fs.readFileSync('./data.json', 'utf8'));
+                                  for(var i = 0 ; i < data.records.length; i++) {
+                                      if(data.records[i].blockHeight === blockHeight){
+                                         if(hashPlusDeux != 0){
+                                              if(resultBin.slice(-5) == data.records[i].pari) {
+                                                 data.records[i].win = "won !!";
+                                              }
+                                              else {
+                                                data.records[i].win = "lose";
+                                              }
+
+                                            // need to update the value if known
+                                            $('.bets' ).append('<li>'+ data.records[i].win +' <-> '+data.records[i].nom + ' ' + data.records[i].prenom + '</li>');
+                                            fs.writeFileSync('./data.json', JSON.stringify(data));
+                                         }
+                                         else{
+                                           $('bets').append('<li>'+ data.records[i].win +' <-> '+data.records[i].nom + ' ' + data.records[i].prenom + '</li>');
+                                         }
+                                      }
+                                  }
+                                   res.send($.html());
+                                 }
+                             });
+
+
+
                     }
-                }
-                 res.send($.html());
-               }
-           });
+                    else {
+                      console.lof("error request#33");
+                    }
+              }); // end html request
+
+
       }
       else{ // id null
 
@@ -133,10 +177,6 @@ app.get('/results', function(req, res){
       }
 
 });
-
-
-
-
 
 var server = app.listen(3000, function () {
   var host = server.address().address;
