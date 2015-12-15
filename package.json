@@ -1,0 +1,23 @@
+{
+  "name": "kouakou-betchain",
+  "version": "0.0.1",
+  "description": "An amazing web app to bet on blockchain",
+  "author": "Begniki Kouakou",
+
+  "main": "server.js",
+  "repository": {
+  "type": "git",
+  "url": ""
+},
+  "keywords": [
+],
+  "dependencies": {
+    "cheerio": "0.19.0",
+    "express": "4.0.0",
+    "fs": "*",
+    "path": "0.12.7",
+    "body-parser": "1.14.1",
+    "request" : "*"
+  },
+  "license": "UNLICENSED"
+}

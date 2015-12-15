@@ -87,7 +87,7 @@ app.get('/results', function(req, res){
   /* Display results here */
   var blockHeight = req.query.id;
 
-      if(req.query.id != null) {
+      if(req.query.id !== null) {
 
               var blockHeightPlusDeux =  parseInt(req.query.id) + 2;
               var url = getHashByHeightURL + blockHeightPlusDeux;
@@ -130,7 +130,7 @@ app.get('/results', function(req, res){
                                   var data = JSON.parse(fs.readFileSync('./data.json', 'utf8'));
                                   for(var i = 0 ; i < data.records.length; i++) {
                                       if(data.records[i].blockHeight === blockHeight){
-                                         if(hashPlusDeux != 0){
+                                         if(hashPlusDeux !== 0){
                                               if(resultBin.slice(-5) == data.records[i].pari) {
                                                  data.records[i].win = "won !!";
                                               }
