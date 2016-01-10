@@ -4,6 +4,7 @@ var   express = require('express'),
       request = require('request'),
       path = require('path'),
       bodyParser = require('body-parser'),
+      db = require('./database'),
       app = express();
 
 app.set('views', path.join(__dirname, 'views'));
@@ -50,23 +51,58 @@ app.get('/', function (req, res) {
 // receiving the new bet
 app.post('/', function(req, res) {
 
-      var record = {};
-      record.blockHeight = req.body.blockHeight.toString();
-      record.nom = req.body.nom.toString();
-      record.prenom = req.body.prenom.toString();
-      record.pari= req.body.pari.toString();
-      record.blockHash = req.body.blockHash.toString();
-      record.win = "pending";
+  /// SHOW RESULTS FOR SINGLE PLAYER
+    if(req.body.pari.toString() === "" && req.body.nom.toString() !== "" && req.body.prenom.toString() !== "") {
 
-      //saving
-       var data = JSON.parse(fs.readFileSync('./data.json', 'utf8'));
-       data.records.push(record);
-       fs.writeFileSync('./data.json', JSON.stringify(data));
+          db.getRecordsForPlayer(req.body.nom.toString(), req.body.prenom.toString(), null, function(results) {
 
-      res.contentType('text/html');
-      res.write("Thank you "+record.prenom+", your bet as been saved ! \n");
-      res.write("<a href=\"/results?id="+record.blockHeight+"\">click here</a> to jump to the result page");
-      res.end();
+            fs.readFile('./views/myresults.html','utf8', function (err, html) {
+                 if (err) {
+                     throw err;
+                 }
+                 else {
+                   res.contentType('text/html');
+                   $ = cheerio.load(html);
+                   $('.player').text(req.body.nom.toString() + " " + req.body.prenom.toString());
+
+                  for(var i = 0 ; i < results.records.length; i++) {
+                    // need to update the value if known
+                    $('.bets' ).append('<li>Block #'+ results.records[i].blockHeight +' <-> '+results.records[i].win + ' (avec comme pari : ' + results.records[i].pari + ')</li>');
+
+                  } // end for each records
+                   res.send($.html());
+                 }
+             }); // end readfile
+          }); // end getRecordsForPlayer (DB)
+
+        }
+
+// TO SAVE A BET
+
+        else{ // si le champ pari A été rempli
+            var record = {};
+            record.blockHeight = req.body.blockHeight.toString();
+            record.nom = req.body.nom.toString();
+            record.prenom = req.body.prenom.toString();
+            record.pari= req.body.pari.toString();
+            record.blockHash = req.body.blockHash.toString();
+            record.win = "pending";
+
+            //saving
+          db.saveBet(record, function(success){
+            res.contentType('text/html');
+            if(success){
+              res.write("Thank you "+record.prenom+", your bet as been saved ! \n");
+              res.write("<a href=\"/\">Go Back</a>");
+            }
+            else{
+              res.write("Sorry you can't bet several times for the same Block !");
+            }
+            res.end();
+          });
+
+        }
+
 
  });
 
@@ -89,9 +125,15 @@ app.get('/results', function(req, res){
 
       if(req.query.id !== null) {
 
-              var blockHeightPlusDeux =  parseInt(req.query.id) + 2;
-              var url = getHashByHeightURL + blockHeightPlusDeux;
-              // get the block + 2 hash if avaiable
+              // var blockHeightPlusDeux =  parseInt(req.query.id) + 2;
+              // var url = getHashByHeightURL + blockHeightPlusDeux;
+              // // get the block + 2 hash if avaiable in bdd
+              // db.checkBlockPlusDeuxIssetInDB(req.query.id, /////){
+              //
+              // }
+
+
+
               var req = request(url, function(error, response, html){ // ! async !
                     if(!error){
                       var hashPlusDeux = 0;
@@ -184,29 +226,3 @@ var server = app.listen(3000, function () {
 
   console.log('Example app listening at http://%s:%s', host, port);
 });
-
-
-
-
-
-/*var http = require('http'),
-    express = require('express'),
-    cheerio = require('cheerio'),
-    app = express();
-
-
-
-app.get('/', function(req, res) {
-  res.writeHead(200);
-  res.write("nothing to how");
-  res.end;
- });
-
-
- var server = app.listen(9292, function () {
-         var host = server.address().address;
-         var port = server.address().port;
-         console.log('App is listening at http://%s:%s', host, port);
-
- });
-*/
