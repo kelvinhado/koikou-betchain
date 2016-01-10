@@ -1,4 +1,6 @@
-var fs = require('fs');
+var fs = require('fs'),
+cheerio = require('cheerio'),
+request = require('request');
 
 
 function getDataFromFile() {
@@ -76,5 +78,13 @@ exports.checkBlockPlusDeuxIssetInDB = function(height, callback){
 
     if(!foundInDb){
         callback(null);
+    }
+};
+
+exports.checkForWin = function(records, callback) {
+var data = getDataFromFile();
+    for(var i = 0 ; i < records.length; i++) {
+        
+
     }
 };
