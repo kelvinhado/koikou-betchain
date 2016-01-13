@@ -17,7 +17,8 @@
     "fs": "*",
     "path": "0.12.7",
     "body-parser": "1.14.1",
-    "request" : "*"
+    "request" : "*",
+    "asyn" : "3.3.12"
   },
   "license": "UNLICENSED"
 }
