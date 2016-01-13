@@ -1,6 +1,10 @@
 var fs = require('fs'),
 cheerio = require('cheerio'),
 request = require('request');
+var http = require('http'),
+async = require('async');
+
+
 
 
 function getDataFromFile() {
@@ -81,10 +85,98 @@ exports.checkBlockPlusDeuxIssetInDB = function(height, callback){
     }
 };
 
-exports.checkForWin = function(records, callback) {
-var data = getDataFromFile();
-    for(var i = 0 ; i < records.length; i++) {
-        
+exports.checkForWin = function(callback) {
 
+var apiURL = "http://blockexplorer.com/api/block-index/";
+
+var data = getDataFromFile();
+var tableID = [];
+var resultToUpdate = [];
+
+  for(var i = 0 ; i < data.records.length; i++) {
+      if(data.records[i].win == -1){
+          var blockHeight = (parseInt(data.records[i].blockHeight) + 2);
+          if(tableID[tableID.length-1] != blockHeight){
+              tableID.push(blockHeight);
+          }
+      }
+  }
+
+
+
+// ASYNC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  async.each(tableID, function(blockID, callback) {
+
+    strUrl = apiURL + blockID;
+  //  console.log('Processing  url :' + strUrl);
+
+    request(strUrl, function(error, response, html){ // ! async !
+          if(!error){
+            var hashPlusDeux = 0;
+            var resultBin;
+              if(html != "Bad Request") {
+                  var jsonResult = JSON.parse(html);
+                  var binaire = getBinaireFromHash(jsonResult.blockHash);
+                  console.log("fetched url : " + blockID + " >> "+ binaire);
+                  var record = { "blockHeight" : blockID, "result" : binaire};
+                  resultToUpdate.push(record);
+                }
+                else{
+                  console.log("fetched url : ERROR the result may not be out yet !" + blockID );
+                }
+              callback();
+          }
+    });
+
+    // END EACH ASYNC
+  }, function(err){
+      // if any of the file processing produced an error, err would equal that error
+      if( err ) {
+        console.log('A file failed to process');
+        callback();
+      } else {
+        console.log('All request have been processed successfully');
+
+        // SAVING RESULTS >_>_>_>_>_>_>_>_>_>_>_>_>_>
+          for(var i = 0 ; i < data.records.length; i++) { // for each records (data)
+              if(data.records[i].win === -1){
+                  for(var j = 0 ; j < resultToUpdate.length; j++) { // for each (fetched hash)
+                      if(resultToUpdate[j].blockHeight == (parseInt(data.records[i].blockHeight) + 2).toString()){  //if same
+                          data.records[i].win  = compareResultBinaire(data.records[i].pari, resultToUpdate[j].result);
+                          data.records[i].result = resultToUpdate[j].result;
+                          var da = data.records[i];
+                          console.log("updating record : ("+ da.blockHeight +"+2)"+ da.nom + " " + da.prenom + " win = " +  da.win + " >>>>" + da.pari + " vs " + resultToUpdate[j].result );
+                      }
+                  }
+              }
+          }
+
+          writeDataToFile(data);
+        // SAVINF RESULTS <_<_<_<_<_<_<_<_<_<_<_<_<_<
+
+
+
+
+
+        callback();
+      }
+  });
+
+// ASYN <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+};
+
+var getBinaireFromHash = function(hash){
+  var hexa = hash.slice(-2);
+  return parseInt(hexa,16).toString(2).slice(-5);
+};
+
+var compareResultBinaire = function(bin1, bin2){  // return le nombre de match
+    var sum =  0;
+    for(var i = 0; i < 5; i++){
+       if(bin1[i] == bin2[i]){
+          sum++;
+       }
     }
+    return sum;
 };
