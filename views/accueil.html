@@ -3,37 +3,72 @@
     <head>
         <meta charset="utf-8" />
         <title>Accueil_lotterie</title>
+	<!--	<link href="../bootstrap-3.3.6-dist/css/bootstrap.css" rel="stylesheet">-->
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
     </head>
 
     <body>
-		<header>
-		<h1>
-		Accueil
-		</h1>
-		</header>
-<nav>
-	<ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/gains">Liste des gains</a></li>
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+	<div class="container">
+		<div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="./">Lotterie Blockchain</a>
+        </div>
+		<div id="navbar" class="collapse navbar-collapse">
+		<ul class="nav navbar-nav">
+	    <li><a href="./">Accueil</a></li>
+		<li><a href="./gains">Liste des gains</a></li>
+		 <li><a href="./views/Mode_d_emploi.pdf">Comment jouer? </a></li>
     </ul>
+	</div>
+	</div>
 </nav>
-	    <h3>Dernier Block : <span class="blockHeight" style="font-weight: bold">height</span></h3>
-        <p>Pari sur le block : <span class="blockHash" style="font-weight: bold">hash</span></p>
+	<div class="jumbotron">
+		<header>
+			<h2>
+			Accueil
+			</h2>
+		</header>
+	    <p>Dernier Block : <span class="blockHeight" style="font-weight: bold">height</span></p>
+        <h3>Pari sur le block : <span class="blockHash" style="font-weight: bold">hash</span></h3>
 
-		<form method="post" action="/">
-			<label>Votre Nom</label> : <input type="text" name="nom" />
-			</br>
-			<label>Votre Prenom</label> : <input type="text" name="prenom" />
-			</br>
-			<p>Veuillez rentrer 5 chiffres composés que de 0 et 1</p>
-			</br>
-      (ne pas remplir le champs ci-dessous si vous voulez juste regarder vos resu)
-			<label>Pari</label> : <input type="text" name="pari"  placeholder="Ex : 00011"/>
-
+		<form class="form-horizontal" method="post" action="/">
+		<div class="form_group">
+			<label class="col-sm-2 control-label">Votre Nom </label>
+			<div class="col-sm-9">
+				<input type="text" class="form-control" name="nom" />
+			 </div>
+		</div>
+		<div class="form_group">
+		<!-- (Veuillez rentrer 5 chiffres composés que de 0 et 1) -->
+			<label class="col-sm-2 control-label">Votre Prenom</label>
+			<div class="col-sm-9">
+				<input type="text" class="form-control" name="prenom" />
+			</div>
+		</div>
+		<div class="form_group">
+      <!-- (ne pas remplir le champs ci-dessous si vous voulez juste regarder vos resultats) -->
+			<label class="col-sm-2 control-label">Pari <br>(ne pas remplir le champs ci-dessous si vous voulez juste regarder vos resultats)</br>
+			</label>
+			<div class="col-xs-6">
+				<input type="text" class="form-control" name="pari"  placeholder="Ex : 00011"/>
+			</div>
+		</div>
       <input type="hidden" id="blockHeight" name="blockHeight" value="undefined">
       <input type="hidden" id="blockHash" name="blockHash" value="undefined">
-			<input type="submit" value="OK" />
-		</form>
+	   <div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button type="submit" value="OK" class="btn btn-primary">Validez</button>
+		</div>
+		</div>
 
+		</form>
+	</div>
 	</body>
 </html>

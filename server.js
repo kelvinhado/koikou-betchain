@@ -8,6 +8,7 @@ var   express = require('express'),
       app = express();
 
 app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, './bootstrap-3.3.6-dist/css')));
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true }));
 
